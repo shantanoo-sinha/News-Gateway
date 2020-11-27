@@ -31,8 +31,8 @@ public class SourceDownloader implements Runnable {
     private static final String API_KEY_TOKEN = "&apiKey=";
 
     private String newsCategory;
-    private List<NewsSource> newsSources;
     private Set<String> newsCategories;
+    private List<NewsSource> newsSources;
 
     private MainActivity mainActivity;
 
@@ -86,12 +86,7 @@ public class SourceDownloader implements Runnable {
 
     public void handleResults(final String jsonString) {
         parseJSON(jsonString);
-        mainActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mainActivity.populateSourceAndCategory(newsCategories, newsSources);
-            }
-        });
+        mainActivity.runOnUiThread(() -> mainActivity.populateSourceAndCategory(newsCategories, newsSources));
     }
 
     private void parseJSON(String input) {

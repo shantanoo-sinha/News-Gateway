@@ -2,17 +2,68 @@ package com.shantanoo.news_gateway.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
 
-import androidx.annotation.Nullable;
+import com.shantanoo.news_gateway.MainActivity;
+import com.shantanoo.news_gateway.model.NewsArticle;
 
-/**
- * Created by Shantanoo on 11/23/2020.
- */
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 public class NewsService extends Service {
-    @Nullable
+    private static final String TAG = "NewsService";
+
+    private boolean isRunning = true;
+    private NewsServiceReceiver receiver;
+    private List<NewsArticle> articles = new ArrayList<>();
+
+    public NewsService() {
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        receiver = new NewsServiceReceiver(this);
+        IntentFilter intentFilter = new IntentFilter(MainActivity.ACTION_SERVICE);
+        registerReceiver(receiver, intentFilter);
+
+        new Thread(() -> {
+            while (isRunning) {
+                while (articles.isEmpty()) {
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                sendArticles();
+            }
+        }).start();
+        return Service.START_STICKY;
+    }
+
+    private void sendArticles() {
+        Intent intent = new Intent();
+        intent.setAction(MainActivity.ACTION_NEWS_STORY);
+        intent.putExtra(MainActivity.ARTICLE_LIST, (Serializable) articles);
+        sendBroadcast(intent);
+        articles.clear();
+    }
+
+    public void populateArticles(List<NewsArticle> articles) {
+        this.articles.clear();
+        this.articles.addAll(articles);
+    }
+
+    @Override
+    public void onDestroy() {
+        isRunning = false;
+        super.onDestroy();
     }
 }

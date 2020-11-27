@@ -40,9 +40,8 @@ public class ArticleDownloader implements Runnable {
 
     @Override
     public void run() {
-        String DOWNLOAD_LINK = initURL();
+        Uri uri = Uri.parse(initURL());
 
-        Uri uri = Uri.parse(DOWNLOAD_LINK);
         String line;
         StringBuilder sb = new StringBuilder();
 
@@ -74,18 +73,14 @@ public class ArticleDownloader implements Runnable {
 
     public void handleResults(final String jsonString) {
         parseJSON(jsonString);
-        /*newsService.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                newsService.populateArticles(newsArticles);
-            }
-        });*/
+        newsService.populateArticles(newsArticles);
     }
 
     private void parseJSON(String input) {
         try {
             JSONObject jsonObject = new JSONObject(input);
             JSONArray jsonArray = jsonObject.getJSONArray("articles");
+
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject articleJsonObject = jsonArray.getJSONObject(i);
                 NewsArticle article = new NewsArticle();
