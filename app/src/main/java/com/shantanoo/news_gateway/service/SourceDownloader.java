@@ -31,7 +31,7 @@ public class SourceDownloader implements Runnable {
     private static final String API_KEY_TOKEN = "&apiKey=";
 
     private String newsCategory;
-    private Set<String> newsCategories;
+    private List<String> newsCategories;
     private List<NewsSource> newsSources;
 
     private MainActivity mainActivity;
@@ -41,7 +41,7 @@ public class SourceDownloader implements Runnable {
         newsCategory = category;
 
         newsSources = new ArrayList<>();
-        newsCategories = new HashSet<>();
+        newsCategories = new ArrayList<>();
     }
 
     @Override
@@ -102,7 +102,8 @@ public class SourceDownloader implements Runnable {
                 source.setUrl(sourceJsonObject.getString("url"));
 
                 newsSources.add(source);
-                newsCategories.add(source.getCategory());
+                if (!newsCategories.contains(source.getCategory()))
+                    newsCategories.add(source.getCategory());
             }
         } catch (Exception e) {
             Log.e(TAG, "parseJSON: Failed to parse JSON", e);

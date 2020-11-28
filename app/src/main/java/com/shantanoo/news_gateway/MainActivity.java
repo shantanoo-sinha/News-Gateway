@@ -45,30 +45,28 @@ public class MainActivity extends AppCompatActivity {
     public static final String ARTICLE_LIST = "ARTICLE_LIST";
     public static final String SOURCE_ID = "SOURCE_ID";
     private static final String TAG = "MainActivity";
+    private List<Drawer> drawerList;
+    private String newsSource;
+    private int currentSourcePointer;
     private boolean serviceStatus = false;
     private boolean appState;
-
-    private Map<String, NewsSource> sourceStore = new HashMap<>();
-    private int currentSourcePointer;
-
-    private Set<String> newsCategories;
-    private Menu categoryMenu;
-    private NewsReceiver receiver;
-
-    private List<Drawer> drawerList;
+    private Map<String, NewsSource> sourceStore;
+    private List<String> sourceList;
+    private List<NewsSource> sources;
+    private List<String> categories;
     private List<NewsFragment> newsFragments;
+    private List<NewsArticle> articles;
+
+    private NewsReceiver receiver;
 
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
     private ColorsAdapter adapter;
+    private Menu categoryMenu;
     private ActionBarDrawerToggle drawerToggle;
     private PageAdapter pageAdapter;
     private ViewPager viewPager;
-    private String newsSource;
-    private List<String> sourceList;
-    private List<NewsSource> sources;
-    private List<String> categories;
-    private List<NewsArticle> articles;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
 
         drawerList = new ArrayList<>();
         newsFragments = new ArrayList<>();
+
+        sourceStore = new HashMap<>();
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -112,13 +112,10 @@ public class MainActivity extends AppCompatActivity {
             new Thread(new SourceDownloader(this, "")).start();
 
         // add click listener to drawer list view
-        drawerListView.setOnItemClickListener(new ListView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                viewPager.setBackgroundResource(0);
-                currentSourcePointer = position;
-                selectListItem(position);
-            }
+        drawerListView.setOnItemClickListener((parent, view, position, id) -> {
+            viewPager.setBackgroundResource(0);
+            currentSourcePointer = position;
+            selectListItem(position);
         });
 
         // update the drawer toggle
@@ -131,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         categoryMenu = menu;
         if (appState) {
             categoryMenu.add("all");
-            for (String category : newsCategories)
+            for (String category : categories)
                 categoryMenu.add(category);
         }
         return super.onCreateOptionsMenu(menu);
@@ -204,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < sources.size(); i++) {
             sourceList.add(sources.get(i).getName());
-            sourceStore.put(sources.get(i).getName(), (NewsSource) sources.get(i));
+            sourceStore.put(sources.get(i).getName(), sources.get(i));
         }
 
         drawerListView.clearChoices();
@@ -226,37 +223,33 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    public void populateSourceAndCategory(Set<String> newsCategories, List<NewsSource> newsSources) {
-    }
-
-    // Rename populateSourceAndCategory
-    public void init(List<NewsSource> sources, List<String> categories) {
+    public void populateSourceAndCategory(List<String> newsCategories, List<NewsSource> newsSources) {
         Log.d(TAG, "init: STARTED");
-        Log.d(TAG, "sources size : " + sources.size());
-        Log.d(TAG, "categories size : " + categories.size());
+        Log.d(TAG, "newsSources size : " + newsSources.size());
+        Log.d(TAG, "newsCategories size : " + newsCategories.size());
         sourceStore.clear();
         sourceList.clear();
         this.sources.clear();
         drawerList.clear();
-        this.sources.addAll(sources);
+        this.sources.addAll(newsSources);
 
-        for (int index = 0; index < sources.size(); index++) {
-            sourceList.add(sources.get(index).getName());
-            sourceStore.put(sources.get(index).getName(), sources.get(index));
+        for (int index = 0; index < newsSources.size(); index++) {
+            sourceList.add(newsSources.get(index).getName());
+            sourceStore.put(newsSources.get(index).getName(), newsSources.get(index));
         }
 
         // Sort and update category list in the options menu
         if (!categoryMenu.hasVisibleItems()) {
             this.categories.clear();
-            this.categories = categories;
+            this.categories = newsCategories;
             categoryMenu.add("all");
-            Collections.sort(categories);
-            for (String category : categories)
+            Collections.sort(newsCategories);
+            for (String category : newsCategories)
                 categoryMenu.add(category);
         }
 
         // Update the drawer
-        for (NewsSource s : sources) {
+        for (NewsSource s : newsSources) {
             Drawer drawerContent = new Drawer();
             drawerContent.setItemName(s.getName());
             drawerList.add(drawerContent);
@@ -296,8 +289,8 @@ public class MainActivity extends AppCompatActivity {
     private class PageAdapter extends FragmentPagerAdapter {
         private long baseId = 0;
 
-        PageAdapter(FragmentManager fm) {
-            super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        public PageAdapter(FragmentManager fm) {
+            super(fm);
         }
 
         @Override

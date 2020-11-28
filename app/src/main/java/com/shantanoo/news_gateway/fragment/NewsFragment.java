@@ -3,6 +3,7 @@ package com.shantanoo.news_gateway.fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,9 +31,10 @@ public class NewsFragment extends Fragment {
     public static final String ARTICLE = "ARTICLE";
     public static final String INDEX = "INDEX";
     public static final String TOTAL = "TOTAL";
-    public static final String NOT_FOUND = "";
-    public static final String DATE_PATTERN = "MMM dd, yyyy HH:mm";
-    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String DATE_FORMAT = "MMM dd, yyyy HH:mm";
+    public static final String DATE_FORMAT_PARSE = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final SimpleDateFormat sdfFormat = new SimpleDateFormat(DATE_FORMAT);
+    private static final SimpleDateFormat sdfParse = new SimpleDateFormat(DATE_FORMAT_PARSE);
     private static final String TAG = "NewsFragment";
     private TextView articleHeadLine;
     private TextView articleDate;
@@ -75,55 +78,61 @@ public class NewsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_news, container, false);
+
         articleHeadLine = view.findViewById(R.id.articleHeadline);
         articleDate = view.findViewById(R.id.articleDate);
         articleAuthor = view.findViewById(R.id.articleAuthor);
         articleText = view.findViewById(R.id.articleText);
         articlePhoto = view.findViewById(R.id.articleImage);
         articleCount = view.findViewById(R.id.articleCount);
-        articleCount.setText(new StringBuilder().append(getArguments().getInt(INDEX) + 1).append(" of ").append(getArguments().getInt(TOTAL)).toString());
 
         article = (NewsArticle) getArguments().getSerializable(ARTICLE);
-        // Update article title only if it is not null and "null"
-        if (article.getTitle() != null && !article.getTitle().trim().equals("null"))
-            articleHeadLine.setText(article.getTitle());
+
+        // Show article title only if it is not null and not equal to "null"
+        if (isNull(article.getTitle()))
+            articleHeadLine.setVisibility(View.GONE);
         else
-            articleHeadLine.setText(NOT_FOUND);
+            articleHeadLine.setText(article.getTitle());
 
-        // Update article published date only if it is not null and "null"
-        if (article.getPublishedAt() != null && !article.getPublishedAt().isEmpty() && !article.getPublishedAt().trim().equals("null")) {
+        // Show article published date only if it is not null and not equal to "null"
+        if (!isNull(article.getPublishedAt())) {
             try {
-                SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
-                articleDate.setText(sdf.format(new SimpleDateFormat(DATE_FORMAT).parse(article.getPublishedAt())));
+                Date parsedDate = sdfParse.parse(article.getPublishedAt());
+                if (parsedDate != null) {
+                    articleDate.setText(sdfFormat.format(parsedDate));
+                }
             } catch (ParseException e) {
-
+                Log.e(TAG, "onCreateView: Failed to parse date", e);
             }
         }
 
-        // Update article author only if it is not null and "null"
-        if (article.getAuthor() != null && !article.getAuthor().trim().equals("null"))
+        // Show article author only if it is not null and not equal to "null"
+        if (isNull(article.getAuthor()))
+            articleAuthor.setVisibility(View.GONE);
+        else
             articleAuthor.setText(article.getAuthor());
-        else
-            articleAuthor.setText(NOT_FOUND);
 
-        // Update article text only if it is not null and "null"
-        if (article.getDescription() != null && !article.getDescription().trim().equals("null"))
+        // Show article text only if it is not null and not equal to "null"
+        if (isNull(article.getDescription()))
+            articleText.setVisibility(View.GONE);
+        else
             articleText.setText(article.getDescription());
+
+        // Show article image only if URL is not null and not equal to "null"
+        if (isNull(article.getUrlToImage()))
+            articlePhoto.setVisibility(View.GONE);
         else
-            articleText.setText(NOT_FOUND);
+            showImage(article.getUrlToImage());
 
-        // Update article image URL only if it is not null and "null"
-        if (article.getUrlToImage() != null) {
-            updateImage(article.getUrlToImage(), !article.getUrlToImage().trim().equals("null"));
-        }
+        articleCount.setText(String.format("%d of %d", getArguments().getInt(INDEX) + 1, getArguments().getInt(TOTAL)));
 
-        // Make article head line clickable and nav to article link
+        // Article headline clickable and navigate to article in browser
         articleHeadLine.setOnClickListener(v -> startIntent());
 
-        // Make article photo clickable and nav to article link
+        // Article photo clickable and navigate to article in browser
         articlePhoto.setOnClickListener(v -> startIntent());
 
-        // Make article text clickable and nav to article link
+        // Article text clickable and navigate to article in browser
         articleText.setOnClickListener(v -> startIntent());
 
         return view;
@@ -137,24 +146,20 @@ public class NewsFragment extends Fragment {
         startActivity(intent);
     }
 
-    // Update the image in the image view
-    private void updateImage(final String imageURL, boolean displayImage) {
-        if (displayImage) {
-            Log.d(TAG, "image URL : " + imageURL);
-            Picasso picasso = new Picasso.Builder(getActivity()).listener((picasso1, uri, exception) -> exception.printStackTrace()).build();
-            // Enable logging to check for errors
-            picasso.setLoggingEnabled(true);
-            // Load the image, if any error then broken image is loaded.
-            picasso.load(imageURL)
-                    .fit()
-                    .centerCrop()
-                    .error(R.drawable.brokenimage)
-                    .placeholder(R.drawable.placeholder)
-                    .into(articlePhoto);
-        } else {
-            Log.d(TAG, "updateImage imageURL is  String(null) actual is -> : " + imageURL);
-            articlePhoto.setImageResource(R.drawable.missing);
-        }
-        Log.d(TAG, "updateImage: COMPLETED");
+    // Show the image in the image view
+    private void showImage(final String imageURL) {
+        Log.d(TAG, "image URL : " + imageURL);
+        Picasso picasso = new Picasso.Builder(getActivity()).listener((picasso1, uri, exception) -> exception.printStackTrace()).build();
+        // Enable logging to check for errors
+        picasso.setLoggingEnabled(true);
+        // Load the image, if any error then broken image is loaded.
+        picasso.load(imageURL)
+                .error(R.drawable.brokenimage)
+                .placeholder(R.drawable.placeholder)
+                .into(articlePhoto);
+    }
+
+    private boolean isNull(String input) {
+        return TextUtils.isEmpty(input) || input.trim().equals("null");
     }
 }
