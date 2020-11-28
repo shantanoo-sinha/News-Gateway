@@ -1,5 +1,7 @@
 package com.shantanoo.news_gateway.model;
 
+import android.text.SpannableString;
+
 import java.io.Serializable;
 
 /**
@@ -11,6 +13,7 @@ public class NewsSource implements Serializable {
     private String name;
     private String category;
     private String url;
+    private SpannableString coloredName;
 
     public String getId() {
         return id;
@@ -42,6 +45,14 @@ public class NewsSource implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public SpannableString getColoredName() {
+        return coloredName;
+    }
+
+    public void setColoredName(SpannableString coloredName) {
+        this.coloredName = coloredName;
     }
 
     @Override

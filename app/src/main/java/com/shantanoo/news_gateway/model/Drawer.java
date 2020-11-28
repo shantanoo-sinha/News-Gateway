@@ -1,16 +1,18 @@
 package com.shantanoo.news_gateway.model;
 
+import android.text.SpannableString;
+
 /**
  * Created by Shantanoo on 11/27/2020.
  */
 public class Drawer {
-    private String itemName;
+    private SpannableString itemName;
 
-    public String getItemName() {
+    public SpannableString getItemName() {
         return itemName;
     }
 
-    public void setItemName(String itemName) {
+    public void setItemName(SpannableString itemName) {
         this.itemName = itemName;
     }
 }

@@ -1,6 +1,7 @@
 package com.shantanoo.news_gateway.service;
 
 import android.net.Uri;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -100,6 +101,7 @@ public class SourceDownloader implements Runnable {
                 source.setName(sourceJsonObject.getString("name"));
                 source.setCategory(sourceJsonObject.getString("category"));
                 source.setUrl(sourceJsonObject.getString("url"));
+                source.setColoredName(new SpannableString(source.getName()));
 
                 newsSources.add(source);
                 if (!newsCategories.contains(source.getCategory()))

@@ -4,11 +4,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import androidx.annotation.NonNull;
@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private PageAdapter pageAdapter;
     private ViewPager viewPager;
 
+    private int[] topicColors;
+    private Map<String, Integer> topicIntMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +83,9 @@ public class MainActivity extends AppCompatActivity {
         newsFragments = new ArrayList<>();
 
         sourceStore = new HashMap<>();
+
+        topicColors = getResources().getIntArray(R.array.topicColors);
+        topicIntMap = new HashMap<>();
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -122,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open_navigation_drawer, R.string.close_navigation_drawer);
     }
 
+    //
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.categories, menu);
@@ -134,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    //
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (drawerToggle.onOptionsItemSelected(item)) {  // <== Important!
@@ -146,18 +152,21 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         drawerToggle.syncState();
     }
 
+    //
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
+    //
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         Log.d(TAG, "onSaveInstanceState: STARTED");
@@ -182,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onSaveInstanceState: COMPLETED");
     }
 
+    //
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         Log.d(TAG, "onRestoreInstanceState: STARTED");
@@ -215,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onRestoreInstanceState: COMPLETED");
     }
 
+    //
     @Override
     protected void onDestroy() {
         unregisterReceiver(receiver);
@@ -223,35 +234,51 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    //
     public void populateSourceAndCategory(List<String> newsCategories, List<NewsSource> newsSources) {
         Log.d(TAG, "init: STARTED");
         Log.d(TAG, "newsSources size : " + newsSources.size());
         Log.d(TAG, "newsCategories size : " + newsCategories.size());
         sourceStore.clear();
         sourceList.clear();
-        this.sources.clear();
+        sources.clear();
         drawerList.clear();
-        this.sources.addAll(newsSources);
+        sources.addAll(newsSources);
 
-        for (int index = 0; index < newsSources.size(); index++) {
+        /*for (int index = 0; index < newsSources.size(); index++) {
             sourceList.add(newsSources.get(index).getName());
             sourceStore.put(newsSources.get(index).getName(), newsSources.get(index));
-        }
+        }*/
 
         // Sort and update category list in the options menu
         if (!categoryMenu.hasVisibleItems()) {
-            this.categories.clear();
-            this.categories = newsCategories;
+            categories.clear();
+            categories = newsCategories;
             categoryMenu.add("all");
             Collections.sort(newsCategories);
-            for (String category : newsCategories)
-                categoryMenu.add(category);
+            int i = 0;
+            for (String category : newsCategories) {
+                SpannableString categoryString = new SpannableString(category);
+                categoryString.setSpan(new ForegroundColorSpan(topicColors[i]), 0, categoryString.length(), 0);
+                topicIntMap.put(category, topicColors[i++]);
+                categoryMenu.add(categoryString);
+            }
         }
+        for (NewsSource source : newsSources) {
+                if (topicIntMap.containsKey(source.getCategory())) {
+                    int color = topicIntMap.get(source.getCategory());
+                    SpannableString coloredString = new SpannableString(source.getName());
+                    coloredString.setSpan(new ForegroundColorSpan(color), 0, source.getName().length(), 0);
+                    source.setColoredName(coloredString);
+                    sourceList.add(source.getName());
+                    sourceStore.put(source.getName(), source);
+                }
+            }
 
         // Update the drawer
-        for (NewsSource s : newsSources) {
+        for (NewsSource source : newsSources) {
             Drawer drawerContent = new Drawer();
-            drawerContent.setItemName(s.getName());
+            drawerContent.setItemName(source.getColoredName());
             drawerList.add(drawerContent);
         }
         adapter.notifyDataSetChanged();
@@ -259,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "init: COMPLETED");
     }
 
+    //
     public void updateFragments(List<NewsArticle> articles) {
         Log.d(TAG, "updateFragments: STARTED");
         setTitle(newsSource);
@@ -277,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "updateFragments: COMPLETED");
     }
 
+    //
     private void selectListItem(int position) {
         Log.d(TAG, "selected pos is : " + position + " sourceList size is: " + sourceList.size());
         newsSource = sourceList.get(position);
