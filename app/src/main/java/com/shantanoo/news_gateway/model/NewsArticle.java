@@ -6,6 +6,7 @@ import java.io.Serializable;
  * Created by Shantanoo on 11/22/2020.
  */
 public class NewsArticle implements Serializable {
+
     private String author;
     private String title;
     private String description;

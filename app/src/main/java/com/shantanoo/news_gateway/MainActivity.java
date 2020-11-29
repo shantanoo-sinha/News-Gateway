@@ -16,12 +16,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.shantanoo.news_gateway.adapter.ColorsAdapter;
+import com.shantanoo.news_gateway.adapter.PageAdapter;
+import com.shantanoo.news_gateway.adapter.SourceAdapter;
 import com.shantanoo.news_gateway.fragment.NewsFragment;
 import com.shantanoo.news_gateway.model.Drawer;
 import com.shantanoo.news_gateway.model.LayoutManager;
@@ -44,24 +42,27 @@ public class MainActivity extends AppCompatActivity {
     public static final String ARTICLE_LIST = "ARTICLE_LIST";
     public static final String SOURCE_ID = "SOURCE_ID";
     private static final String TAG = "MainActivity";
-    private List<Drawer> drawerList;
     private String newsSource;
+
     private int currentSourcePointer;
-    private boolean serviceStatus = false;
     private boolean appState;
-    private Map<String, NewsSource> sourceStore;
+    private boolean serviceStatus = false;
+
     private List<String> sourceList;
     private List<NewsSource> sources;
     private List<String> categories;
-    private List<NewsFragment> newsFragments;
     private List<NewsArticle> articles;
+    private List<NewsFragment> newsFragments;
+    private Map<String, NewsSource> sourceStore;
 
     private NewsReceiver receiver;
+    private SourceAdapter adapter;
 
+    private Menu categoryMenu;
+
+    private List<Drawer> drawerList;
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
-    private ColorsAdapter adapter;
-    private Menu categoryMenu;
     private ActionBarDrawerToggle drawerToggle;
     private PageAdapter pageAdapter;
     private ViewPager viewPager;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -84,8 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
         sourceStore = new HashMap<>();
 
-        topicColors = getResources().getIntArray(R.array.topicColors);
         topicIntMap = new HashMap<>();
+        topicColors = getResources().getIntArray(R.array.topicColors);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -95,14 +97,15 @@ public class MainActivity extends AppCompatActivity {
         receiver = new NewsReceiver(this);
         drawerLayout = findViewById(R.id.drawerLayout);
         drawerListView = findViewById(R.id.drawerList);
-        adapter = new ColorsAdapter(this, drawerList);
+        adapter = new SourceAdapter(this, drawerList);
         drawerListView.setAdapter(adapter);
-        pageAdapter = new PageAdapter(getSupportFragmentManager());
+        pageAdapter = new PageAdapter(getSupportFragmentManager(), newsFragments);
         viewPager = findViewById(R.id.viewPager);
         viewPager.setAdapter(pageAdapter);
 
         // Start service if not started
         if (savedInstanceState == null && !serviceStatus) {
+            Log.d(TAG, "onCreate: Starting News Service");
             Intent intent = new Intent(MainActivity.this, NewsService.class);
             startService(intent);
             serviceStatus = true;
@@ -126,9 +129,9 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open_navigation_drawer, R.string.close_navigation_drawer);
     }
 
-    //
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d(TAG, "onCreateOptionsMenu: ");
         getMenuInflater().inflate(R.menu.categories, menu);
         categoryMenu = menu;
         if (appState) {
@@ -139,37 +142,37 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    //
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected: ");
         if (drawerToggle.onOptionsItemSelected(item)) {  // <== Important!
-            Log.d(TAG, "onOptionsItemSelected: mDrawerToggle " + item);
+            Log.d(TAG, "onOptionsItemSelected: drawerToggle " + item);
             return true;
         }
+        Log.d(TAG, "onOptionsItemSelected: Starting Source Downloader thread");
         new Thread(new SourceDownloader(this, item.getTitle().toString())).start();
         drawerLayout.openDrawer(drawerListView);
 
         return super.onOptionsItemSelected(item);
     }
 
-    //
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onPostCreate: ");
         super.onPostCreate(savedInstanceState);
         drawerToggle.syncState();
     }
 
-    //
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        Log.d(TAG, "onConfigurationChanged: ");
         super.onConfigurationChanged(newConfig);
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    //
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
-        Log.d(TAG, "onSaveInstanceState: STARTED");
+        Log.d(TAG, "onSaveInstanceState: ");
         LayoutManager layoutRestore = new LayoutManager();
 
         Log.d(TAG, "categories: " + categories);
@@ -187,15 +190,15 @@ public class MainActivity extends AppCompatActivity {
         layoutRestore.setArticles(articles);
 
         outState.putSerializable("state", layoutRestore);
+
         super.onSaveInstanceState(outState);
-        Log.d(TAG, "onSaveInstanceState: COMPLETED");
     }
 
-    //
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        Log.d(TAG, "onRestoreInstanceState: STARTED");
+        Log.d(TAG, "onRestoreInstanceState: ");
         super.onRestoreInstanceState(savedInstanceState);
+
         setTitle(R.string.app_name);
         LayoutManager layoutManager = (LayoutManager) savedInstanceState.getSerializable("state");
         appState = true;
@@ -222,33 +225,25 @@ public class MainActivity extends AppCompatActivity {
                     selectListItem(position);
                 }
         );
-        Log.d(TAG, "onRestoreInstanceState: COMPLETED");
     }
 
-    //
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestroy: Stopping News Service");
         unregisterReceiver(receiver);
         Intent intent = new Intent(MainActivity.this, NewsReceiver.class);
         stopService(intent);
         super.onDestroy();
     }
 
-    //
     public void populateSourceAndCategory(List<String> newsCategories, List<NewsSource> newsSources) {
-        Log.d(TAG, "init: STARTED");
-        Log.d(TAG, "newsSources size : " + newsSources.size());
-        Log.d(TAG, "newsCategories size : " + newsCategories.size());
+        Log.d(TAG, "populateSourceAndCategory: ");
+        Log.d(TAG, "newsSources size: " + newsSources.size() + ", newsCategories size: " + newsCategories.size());
         sourceStore.clear();
         sourceList.clear();
         sources.clear();
         drawerList.clear();
         sources.addAll(newsSources);
-
-        /*for (int index = 0; index < newsSources.size(); index++) {
-            sourceList.add(newsSources.get(index).getName());
-            sourceStore.put(newsSources.get(index).getName(), newsSources.get(index));
-        }*/
 
         // Sort and update category list in the options menu
         if (!categoryMenu.hasVisibleItems()) {
@@ -265,15 +260,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         for (NewsSource source : newsSources) {
-                if (topicIntMap.containsKey(source.getCategory())) {
-                    int color = topicIntMap.get(source.getCategory());
-                    SpannableString coloredString = new SpannableString(source.getName());
-                    coloredString.setSpan(new ForegroundColorSpan(color), 0, source.getName().length(), 0);
-                    source.setColoredName(coloredString);
-                    sourceList.add(source.getName());
-                    sourceStore.put(source.getName(), source);
-                }
+            if (topicIntMap.containsKey(source.getCategory())) {
+                int color = topicIntMap.get(source.getCategory());
+                SpannableString coloredString = new SpannableString(source.getName());
+                coloredString.setSpan(new ForegroundColorSpan(color), 0, source.getName().length(), 0);
+                source.setColoredName(coloredString);
+                sourceList.add(source.getName());
+                sourceStore.put(source.getName(), source);
             }
+        }
 
         // Update the drawer
         for (NewsSource source : newsSources) {
@@ -282,13 +277,10 @@ public class MainActivity extends AppCompatActivity {
             drawerList.add(drawerContent);
         }
         adapter.notifyDataSetChanged();
-
-        Log.d(TAG, "init: COMPLETED");
     }
 
-    //
     public void updateFragments(List<NewsArticle> articles) {
-        Log.d(TAG, "updateFragments: STARTED");
+        Log.d(TAG, "updateFragments: ");
         setTitle(newsSource);
 
         for (int i = 0; i < pageAdapter.getCount(); i++)
@@ -302,57 +294,14 @@ public class MainActivity extends AppCompatActivity {
         pageAdapter.notifyDataSetChanged();
         viewPager.setCurrentItem(0);
         this.articles = articles;
-        Log.d(TAG, "updateFragments: COMPLETED");
     }
 
-    //
     private void selectListItem(int position) {
-        Log.d(TAG, "selected pos is : " + position + " sourceList size is: " + sourceList.size());
+        Log.d(TAG, "selectListItem => selected pos: " + position + ", sourceList size: " + sourceList.size());
         newsSource = sourceList.get(position);
         Intent intent = new Intent(MainActivity.ACTION_SERVICE);
         intent.putExtra(SOURCE_ID, newsSource);
         sendBroadcast(intent);
         drawerLayout.closeDrawer(drawerListView);
-    }
-
-    private class PageAdapter extends FragmentPagerAdapter {
-        private long baseId = 0;
-
-        public PageAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public int getItemPosition(@NonNull Object object) {
-            return POSITION_NONE;
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-            return newsFragments.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return newsFragments.size();
-        }
-
-        @Override
-        public long getItemId(int position) {
-            // give an ID different from position when position has been changed
-            return baseId + position;
-        }
-
-        /**
-         * Notify that the position of a fragment has been changed.
-         * Create a new ID for each position to force recreation of the fragment
-         *
-         * @param n number of items which have been changed
-         */
-        void notifyChangeInPosition(int n) {
-            // shift the ID returned by getItemId outside the range of all previous fragments
-            baseId += getCount() + n;
-        }
     }
 }

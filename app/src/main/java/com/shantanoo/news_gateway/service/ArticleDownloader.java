@@ -27,8 +27,8 @@ public class ArticleDownloader implements Runnable {
     private static final String SOURCE_TOKEN = "&sources=";
     private static final String API_KEY_TOKEN = "&apiKey=";
 
-    private List<NewsArticle> newsArticles;
     private String sourceId;
+    private List<NewsArticle> newsArticles;
     private NewsService newsService;
 
     public ArticleDownloader(NewsService newsService, String sourceId) {
@@ -40,6 +40,7 @@ public class ArticleDownloader implements Runnable {
 
     @Override
     public void run() {
+        Log.d(TAG, "run: Downloading Article");
         Uri uri = Uri.parse(initURL());
 
         String line;
@@ -72,11 +73,13 @@ public class ArticleDownloader implements Runnable {
     }
 
     public void handleResults(final String jsonString) {
+        Log.d(TAG, "handleResults: Updating Article data to News Service");
         parseJSON(jsonString);
         newsService.populateArticles(newsArticles);
     }
 
     private void parseJSON(String input) {
+        Log.d(TAG, "parseJSON: Parsing Article data");
         try {
             JSONObject jsonObject = new JSONObject(input);
             JSONArray jsonArray = jsonObject.getJSONArray("articles");

@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.shantanoo.news_gateway.MainActivity;
 import com.shantanoo.news_gateway.model.NewsArticle;
@@ -29,6 +30,7 @@ public class NewsService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand: ");
         receiver = new NewsServiceReceiver(this);
         IntentFilter intentFilter = new IntentFilter(MainActivity.ACTION_SERVICE);
         registerReceiver(receiver, intentFilter);
@@ -49,6 +51,7 @@ public class NewsService extends Service {
     }
 
     private void sendArticles() {
+        Log.d(TAG, "sendArticles: Broadcasting Article");
         Intent intent = new Intent();
         intent.setAction(MainActivity.ACTION_NEWS_STORY);
         intent.putExtra(MainActivity.ARTICLE_LIST, (Serializable) articles);

@@ -11,9 +11,9 @@ public class LayoutManager implements Serializable {
 
     private int source;
     private int article;
+    private List<String> categories = new ArrayList<>();
     private List<NewsSource> sources = new ArrayList<>();
     private List<NewsArticle> articles = new ArrayList<>();
-    private List<String> categories = new ArrayList<>();
 
     public void setSource(int source) {
         this.source = source;
@@ -21,6 +21,14 @@ public class LayoutManager implements Serializable {
 
     public void setArticle(int article) {
         this.article = article;
+    }
+
+    public List<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<String> categories) {
+        this.categories = categories;
     }
 
     public List<NewsSource> getSources() {
@@ -37,13 +45,5 @@ public class LayoutManager implements Serializable {
 
     public void setArticles(List<NewsArticle> articles) {
         this.articles = articles;
-    }
-
-    public List<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(List<String> categories) {
-        this.categories = categories;
     }
 }

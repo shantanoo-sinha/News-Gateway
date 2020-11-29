@@ -17,15 +17,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Shantanoo on 11/22/2020.
  */
 public class SourceDownloader implements Runnable {
     private static final String TAG = "SourceDownloader";
+
     private static final String API_KEY = "5b944cc9c74f46bfae60f39673108944";
     private static final String BASE_URL = "https://newsapi.org/v2/sources?language=en&country=us";
     private static final String CATEGORY_TOKEN = "&category=";
@@ -47,6 +46,7 @@ public class SourceDownloader implements Runnable {
 
     @Override
     public void run() {
+        Log.d(TAG, "run: Downloading Sources");
         String DOWNLOAD_LINK = initURL();
 
         Uri uri = Uri.parse(DOWNLOAD_LINK);
@@ -86,11 +86,13 @@ public class SourceDownloader implements Runnable {
     }
 
     public void handleResults(final String jsonString) {
+        Log.d(TAG, "handleResults: Populating Sources and Categories in MainActivity");
         parseJSON(jsonString);
         mainActivity.runOnUiThread(() -> mainActivity.populateSourceAndCategory(newsCategories, newsSources));
     }
 
     private void parseJSON(String input) {
+        Log.d(TAG, "parseJSON: Parsing Source JSON data");
         try {
             JSONObject jsonObject = new JSONObject(input);
             JSONArray jsonArray = jsonObject.getJSONArray("sources");

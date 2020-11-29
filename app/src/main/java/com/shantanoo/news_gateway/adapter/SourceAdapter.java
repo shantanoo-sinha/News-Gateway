@@ -15,12 +15,12 @@ import java.util.List;
 /**
  * Created by Shantanoo on 11/27/2020.
  */
-public class ColorsAdapter extends BaseAdapter {
+public class SourceAdapter extends BaseAdapter {
 
-    private Context context;
-    private List<Drawer> drawerList;
+    private final Context context;
+    private final List<Drawer> drawerList;
 
-    public ColorsAdapter(Context context, List<Drawer> drawerList) {
+    public SourceAdapter(Context context, List<Drawer> drawerList) {
         this.context = context;
         this.drawerList = drawerList;
     }

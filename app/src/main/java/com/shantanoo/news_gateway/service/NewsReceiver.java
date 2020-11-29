@@ -3,6 +3,7 @@ package com.shantanoo.news_gateway.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.shantanoo.news_gateway.MainActivity;
 import com.shantanoo.news_gateway.model.NewsArticle;
@@ -23,6 +24,7 @@ public class NewsReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, "onReceive: ");
         String action = intent.getAction();
         if (action == null)
             return;

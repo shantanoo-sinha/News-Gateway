@@ -28,21 +28,26 @@ import java.util.Date;
  */
 public class NewsFragment extends Fragment {
 
-    public static final String ARTICLE = "ARTICLE";
-    public static final String INDEX = "INDEX";
-    public static final String TOTAL = "TOTAL";
-    public static final String DATE_FORMAT = "MMM dd, yyyy HH:mm";
-    public static final String DATE_FORMAT_PARSE = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String TAG = "NewsFragment";
+
+    private static final String ARTICLE = "ARTICLE";
+    private static final String INDEX = "INDEX";
+    private static final String TOTAL = "TOTAL";
+    private static final String DATE_FORMAT = "MMM dd, yyyy HH:mm";
+    private static final String DATE_FORMAT_PARSE = "yyyy-MM-dd'T'HH:mm:ss";
+
     private static final SimpleDateFormat sdfFormat = new SimpleDateFormat(DATE_FORMAT);
     private static final SimpleDateFormat sdfParse = new SimpleDateFormat(DATE_FORMAT_PARSE);
-    private static final String TAG = "NewsFragment";
+
     private TextView articleHeadLine;
     private TextView articleDate;
     private TextView articleAuthor;
     private TextView articleText;
     private ImageView articlePhoto;
     private TextView articleCount;
+    
     private NewsArticle article;
+    
     private View view;
 
     public NewsFragment() {
@@ -59,6 +64,7 @@ public class NewsFragment extends Fragment {
      * @return A new instance of fragment NewsFragment.
      */
     public static NewsFragment newInstance(NewsArticle article, int index, int total) {
+        Log.d(TAG, "newInstance: Creating News Fragment instance");
         NewsFragment fragment = new NewsFragment();
         Bundle args = new Bundle(1);
         args.putSerializable(ARTICLE, article);
@@ -70,12 +76,14 @@ public class NewsFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView: ");
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_news, container, false);
 
@@ -94,18 +102,6 @@ public class NewsFragment extends Fragment {
         else
             articleHeadLine.setText(article.getTitle());
 
-        // Show article published date only if it is not null and not equal to "null"
-        if (!isNull(article.getPublishedAt())) {
-            try {
-                Date parsedDate = sdfParse.parse(article.getPublishedAt());
-                if (parsedDate != null) {
-                    articleDate.setText(sdfFormat.format(parsedDate));
-                }
-            } catch (ParseException e) {
-                Log.e(TAG, "onCreateView: Failed to parse date", e);
-            }
-        }
-
         // Show article author only if it is not null and not equal to "null"
         if (isNull(article.getAuthor()))
             articleAuthor.setVisibility(View.GONE);
@@ -118,6 +114,18 @@ public class NewsFragment extends Fragment {
         else
             articleText.setText(article.getDescription());
 
+        // Show article published date only if it is not null and not equal to "null"
+        if (!isNull(article.getPublishedAt())) {
+            try {
+                Date parsedDate = sdfParse.parse(article.getPublishedAt());
+                if (parsedDate != null) {
+                    articleDate.setText(sdfFormat.format(parsedDate));
+                }
+            } catch (ParseException e) {
+                Log.e(TAG, "onCreateView: Failed to parse date", e);
+            }
+        }
+        
         // Show article image only if URL is not null and not equal to "null"
         if (isNull(article.getUrlToImage()))
             articlePhoto.setVisibility(View.GONE);
@@ -139,6 +147,7 @@ public class NewsFragment extends Fragment {
     }
 
     private void startIntent() {
+        Log.d(TAG, "startIntent: Opening news in browser");
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
@@ -148,7 +157,7 @@ public class NewsFragment extends Fragment {
 
     // Show the image in the image view
     private void showImage(final String imageURL) {
-        Log.d(TAG, "image URL : " + imageURL);
+        Log.d(TAG, "showImage: Displaying News image. Image URL : " + imageURL);
         Picasso picasso = new Picasso.Builder(getActivity()).listener((picasso1, uri, exception) -> exception.printStackTrace()).build();
         // Enable logging to check for errors
         picasso.setLoggingEnabled(true);
