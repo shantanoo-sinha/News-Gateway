@@ -13,7 +13,7 @@ public class NewsSource implements Serializable {
     private String name;
     private String category;
     private String url;
-    private SpannableString coloredName;
+    private transient SpannableString coloredName;
 
     public String getId() {
         return id;

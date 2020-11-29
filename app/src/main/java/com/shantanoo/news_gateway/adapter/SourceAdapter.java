@@ -46,7 +46,7 @@ public class SourceAdapter extends BaseAdapter {
             convertView = (LayoutInflater.from(context).inflate(R.layout.drawer_list_item, parent, false));
 
         Drawer drawer = drawerList.get(position);
-        TextView textView = convertView.findViewById(R.id.listItem);
+        TextView textView = convertView.findViewById(R.id.tvListItem);
         textView.setText(drawer.getItemName());
         return convertView;
     }

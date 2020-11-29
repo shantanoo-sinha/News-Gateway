@@ -39,12 +39,12 @@ public class NewsFragment extends Fragment {
     private static final SimpleDateFormat sdfFormat = new SimpleDateFormat(DATE_FORMAT);
     private static final SimpleDateFormat sdfParse = new SimpleDateFormat(DATE_FORMAT_PARSE);
 
-    private TextView articleHeadLine;
-    private TextView articleDate;
-    private TextView articleAuthor;
-    private TextView articleText;
-    private ImageView articlePhoto;
-    private TextView articleCount;
+    private TextView tvArticleHeadLine;
+    private TextView tvArticleDate;
+    private TextView tvArticleAuthor;
+    private TextView tvArticleText;
+    private ImageView ivArticleImage;
+    private TextView tvArticleCount;
     
     private NewsArticle article;
     
@@ -87,39 +87,39 @@ public class NewsFragment extends Fragment {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_news, container, false);
 
-        articleHeadLine = view.findViewById(R.id.articleHeadline);
-        articleDate = view.findViewById(R.id.articleDate);
-        articleAuthor = view.findViewById(R.id.articleAuthor);
-        articleText = view.findViewById(R.id.articleText);
-        articlePhoto = view.findViewById(R.id.articleImage);
-        articleCount = view.findViewById(R.id.articleCount);
+        tvArticleHeadLine = view.findViewById(R.id.tvArticleHeadline);
+        tvArticleDate = view.findViewById(R.id.tvArticleDate);
+        tvArticleAuthor = view.findViewById(R.id.tvArticleAuthor);
+        tvArticleText = view.findViewById(R.id.tvArticleText);
+        ivArticleImage = view.findViewById(R.id.ivArticleImage);
+        tvArticleCount = view.findViewById(R.id.tvArticleCount);
 
         article = (NewsArticle) getArguments().getSerializable(ARTICLE);
 
         // Show article title only if it is not null and not equal to "null"
         if (isNull(article.getTitle()))
-            articleHeadLine.setVisibility(View.GONE);
+            tvArticleHeadLine.setVisibility(View.GONE);
         else
-            articleHeadLine.setText(article.getTitle());
+            tvArticleHeadLine.setText(article.getTitle());
 
         // Show article author only if it is not null and not equal to "null"
         if (isNull(article.getAuthor()))
-            articleAuthor.setVisibility(View.GONE);
+            tvArticleAuthor.setVisibility(View.GONE);
         else
-            articleAuthor.setText(article.getAuthor());
+            tvArticleAuthor.setText(article.getAuthor());
 
         // Show article text only if it is not null and not equal to "null"
         if (isNull(article.getDescription()))
-            articleText.setVisibility(View.GONE);
+            tvArticleText.setVisibility(View.GONE);
         else
-            articleText.setText(article.getDescription());
+            tvArticleText.setText(article.getDescription());
 
         // Show article published date only if it is not null and not equal to "null"
         if (!isNull(article.getPublishedAt())) {
             try {
                 Date parsedDate = sdfParse.parse(article.getPublishedAt());
                 if (parsedDate != null) {
-                    articleDate.setText(sdfFormat.format(parsedDate));
+                    tvArticleDate.setText(sdfFormat.format(parsedDate));
                 }
             } catch (ParseException e) {
                 Log.e(TAG, "onCreateView: Failed to parse date", e);
@@ -128,20 +128,20 @@ public class NewsFragment extends Fragment {
         
         // Show article image only if URL is not null and not equal to "null"
         if (isNull(article.getUrlToImage()))
-            articlePhoto.setVisibility(View.GONE);
+            ivArticleImage.setVisibility(View.GONE);
         else
             showImage(article.getUrlToImage());
 
-        articleCount.setText(String.format("%d of %d", getArguments().getInt(INDEX) + 1, getArguments().getInt(TOTAL)));
+        tvArticleCount.setText(String.format("%d of %d", getArguments().getInt(INDEX) + 1, getArguments().getInt(TOTAL)));
 
         // Article headline clickable and navigate to article in browser
-        articleHeadLine.setOnClickListener(v -> startIntent());
+        tvArticleHeadLine.setOnClickListener(v -> startIntent());
 
         // Article photo clickable and navigate to article in browser
-        articlePhoto.setOnClickListener(v -> startIntent());
+        ivArticleImage.setOnClickListener(v -> startIntent());
 
         // Article text clickable and navigate to article in browser
-        articleText.setOnClickListener(v -> startIntent());
+        tvArticleText.setOnClickListener(v -> startIntent());
 
         return view;
     }
@@ -165,7 +165,7 @@ public class NewsFragment extends Fragment {
         picasso.load(imageURL)
                 .error(R.drawable.brokenimage)
                 .placeholder(R.drawable.placeholder)
-                .into(articlePhoto);
+                .into(ivArticleImage);
     }
 
     private boolean isNull(String input) {
