@@ -1,4 +1,4 @@
-package com.shantanoo.news_gateway.service;
+package com.shantanoo.news_gateway.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,13 +12,13 @@ import java.util.List;
 
 import static com.shantanoo.news_gateway.MainActivity.ARTICLE_LIST;
 
-public class NewsReceiver extends BroadcastReceiver {
+public class MainActivityReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "NewsReceiver";
+    private static final String TAG = "MainActivityReceiver";
 
     private final MainActivity mainActivity;
 
-    public NewsReceiver(MainActivity mainActivity) {
+    public MainActivityReceiver(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
     }
 

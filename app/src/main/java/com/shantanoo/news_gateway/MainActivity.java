@@ -25,7 +25,7 @@ import com.shantanoo.news_gateway.model.Drawer;
 import com.shantanoo.news_gateway.model.LayoutManager;
 import com.shantanoo.news_gateway.model.NewsArticle;
 import com.shantanoo.news_gateway.model.NewsSource;
-import com.shantanoo.news_gateway.service.NewsReceiver;
+import com.shantanoo.news_gateway.receiver.MainActivityReceiver;
 import com.shantanoo.news_gateway.service.NewsService;
 import com.shantanoo.news_gateway.service.SourceDownloader;
 
@@ -37,7 +37,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String ACTION_SERVICE = "ACTION_SERVICE";
+    public static final String ACTION_MSG_TO_SERVICE = "ACTION_MSG_TO_SERVICE";
     public static final String ACTION_NEWS_STORY = "ACTION_NEWS_STORY";
     public static final String ARTICLE_LIST = "ARTICLE_LIST";
     public static final String SOURCE_ID = "SOURCE_ID";
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private List<NewsFragment> newsFragments;
     private Map<String, NewsSource> sourceStore;
 
-    private NewsReceiver receiver;
+    private MainActivityReceiver receiver;
     private SourceAdapter adapter;
 
     private Menu categoryMenu;
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setHomeButtonEnabled(true);
         }
 
-        receiver = new NewsReceiver(this);
+        receiver = new MainActivityReceiver(this);
         drawerLayout = findViewById(R.id.drawerLayout);
         drawerListView = findViewById(R.id.drawerList);
         adapter = new SourceAdapter(this, drawerList);
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "onDestroy: Stopping News Service");
         unregisterReceiver(receiver);
-        Intent intent = new Intent(MainActivity.this, NewsReceiver.class);
+        Intent intent = new Intent(MainActivity.this, MainActivityReceiver.class);
         stopService(intent);
         super.onDestroy();
     }
@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
     private void selectListItem(int position) {
         Log.d(TAG, "selectListItem => selected pos: " + position + ", sourceList size: " + sourceList.size());
         newsSource = sourceList.get(position);
-        Intent intent = new Intent(MainActivity.ACTION_SERVICE);
+        Intent intent = new Intent(MainActivity.ACTION_MSG_TO_SERVICE);
         intent.putExtra(SOURCE_ID, newsSource);
         sendBroadcast(intent);
         drawerLayout.closeDrawer(drawerListView);

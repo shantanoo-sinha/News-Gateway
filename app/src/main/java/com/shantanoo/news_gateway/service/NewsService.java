@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.shantanoo.news_gateway.MainActivity;
 import com.shantanoo.news_gateway.model.NewsArticle;
+import com.shantanoo.news_gateway.receiver.NewsServiceReceiver;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class NewsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand: ");
         receiver = new NewsServiceReceiver(this);
-        IntentFilter intentFilter = new IntentFilter(MainActivity.ACTION_SERVICE);
+        IntentFilter intentFilter = new IntentFilter(MainActivity.ACTION_MSG_TO_SERVICE);
         registerReceiver(receiver, intentFilter);
 
         new Thread(() -> {

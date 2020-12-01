@@ -1,4 +1,4 @@
-package com.shantanoo.news_gateway.service;
+package com.shantanoo.news_gateway.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.shantanoo.news_gateway.MainActivity;
+import com.shantanoo.news_gateway.service.ArticleDownloader;
+import com.shantanoo.news_gateway.service.NewsService;
 
 /**
  * Created by Shantanoo on 11/22/2020.
@@ -26,7 +28,7 @@ public class NewsServiceReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (action == null)
             return;
-        if (MainActivity.ACTION_SERVICE.equals(action)) {
+        if (MainActivity.ACTION_MSG_TO_SERVICE.equals(action)) {
             String sourceId = null;
             if (intent.hasExtra(MainActivity.SOURCE_ID)) {
                 sourceId = intent.getStringExtra(MainActivity.SOURCE_ID);

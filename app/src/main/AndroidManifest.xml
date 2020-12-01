@@ -16,13 +16,13 @@
         android:theme="@style/Theme.NewsGateway">
 
         <receiver
-            android:name=".service.NewsReceiver"
+            android:name=".receiver.MainActivityReceiver"
             android:enabled="true"
             android:exported="true"
             tools:ignore="Instantiatable" />
 
         <receiver
-            android:name=".service.NewsServiceReceiver"
+            android:name=".receiver.NewsServiceReceiver"
             android:enabled="true"
             android:exported="true"
             tools:ignore="Instantiatable" />
