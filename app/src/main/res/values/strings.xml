@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">News-Gateway</string>
+    <string name="app_name">News Gateway</string>
     <string name="article_headline">Article Headline</string>
     <string name="article_date">Article Date</string>
     <string name="article_author">Article Author</string>
